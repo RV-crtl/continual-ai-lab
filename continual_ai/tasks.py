@@ -57,12 +57,15 @@ def verify(task: Task, response: str) -> bool:
 
 def instruction(task: Task, examples: list[dict] | None = None) -> str:
     prefix = (
-        "You are solving a mathematical problem. Work it out carefully. "
-        "Your final answer MUST be a single line exactly in this form: ANSWER: <integer>. "
-        "Do not include anything else in the final response.\n"
+        "Solve the current arithmetic question and output ONLY its calculated integer result. "
+        "Your reply MUST be exactly one line starting with ANSWER: followed by the actual number. "
+        "Never print a placeholder, never copy an example answer, and do not add explanations.\n"
+        "Format demonstrations (not the current task):\n"
+        "Question: Calculate (3) + (4).\nANSWER: 7\n"
+        "Question: Calculate (-2) times (6).\nANSWER: -12\n"
     )
     if examples:
         prefix += "\nPreviously independently verified examples (not the current question):\n"
         for example in examples[:2]:
             prefix += f"Question: {example['question']}\nANSWER: {example['expected']}\n"
-    return prefix + "\nQuestion: " + task.question + "\n"
+    return prefix + "\nNow solve the NEW question; do not reuse a demonstrated answer.\nQuestion: " + task.question + "\n"

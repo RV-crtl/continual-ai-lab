@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from continual_ai.agent import learning_round
 from continual_ai.storage import CloudStore, LocalStore
-from continual_ai.tasks import task_for_seed, parse_integer_answer, verify
+from continual_ai.tasks import task_for_seed, parse_integer_answer, verify, instruction
 
 
 class FakeClient:
@@ -32,6 +32,11 @@ class TaskTests(unittest.TestCase):
         task = task_for_seed(5)
         self.assertTrue(verify(task, f"ANSWER: {task.expected}"))
         self.assertFalse(verify(task, f"ANSWER: {task.expected + 1}"))
+    def test_prompt_uses_concrete_numbers_not_placeholder(self):
+        prompt = instruction(task_for_seed(0))
+        self.assertNotIn("<integer>", prompt)
+        self.assertIn("ANSWER: 7", prompt)
+        self.assertIn(task_for_seed(0).question, prompt)
     def test_no_holdout_seed_in_training(self):
         self.assertNotEqual(task_for_seed(0).seed, task_for_seed(9000000).seed)
 

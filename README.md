@@ -96,7 +96,7 @@ If training libraries conflict on native Windows, do not install random packages
 
 ## GitHub-hosted version — scheduled, not 24/7
 
-GitHub Actions will run the small Ollama `qwen3:0.6b` model daily, attempt eight independently verifiable problems, store each attempt, and commit its verified examples. A static summary is written to `data/cloud/summary.md`. The small model is chosen for normal CPU runners, not for top-tier performance. A source-code push or manual dispatch can trigger an initial run, in addition to the scheduled run.
+GitHub Actions will run the small Ollama `qwen3:1.7b` model daily, attempt eight independently verifiable problems, store each attempt, and commit its verified examples. A static summary is written to `data/cloud/summary.md`. The 1.7B model is chosen as a modest CPU-friendly upgrade after the original 0.6B model copied the answer-format placeholder in its initial run. This is still not a frontier model. A source-code push or manual dispatch can trigger an initial run, in addition to the scheduled run.
 
 **IMPORTANT:** `INSTALL_WINDOWS.ps1` saying **Setup complete** refers to local Python/Ollama only. It does **not** create a GitHub repository. The next publish step is independent.
 
