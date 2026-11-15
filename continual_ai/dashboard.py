@@ -24,6 +24,7 @@ code{color:#a1eab5}table{border-collapse:collapse;width:100%;font-size:.9rem}th,
 <div><small>Last 100 accuracy</small><div class="metric" id="recent">—</div></div>
 <div><small>Recovered formatting successes</small><div class="metric" id="rescued">—</div></div>
 <div><small>Unparseable responses</small><div class="metric" id="unparseable">—</div></div>
+<div><small>Empty final responses</small><div class="metric" id="empty">—</div></div>
 <div><small>Verifier inference calls</small><div class="metric" id="verify">—</div></div>
 <div><small>Verifier inference time</small><div class="metric" id="time">—</div></div>
 </div><p class="help" id="legacy">Original recorded results: —. No local database records have been changed.</p></div>
@@ -32,13 +33,13 @@ code{color:#a1eab5}table{border-collapse:collapse;width:100%;font-size:.9rem}th,
 <div class="panel"><h2>Performance by task family</h2><div class="scroll"><table><thead><tr><th>Family</th><th>Correct</th><th>Attempts</th><th>Accuracy</th></tr></thead><tbody id="families"></tbody></table></div></div>
 <div class="panel"><h2>Latest learning responses</h2><p class="help">The raw model response and parser method are shown so a formatting problem cannot be mistaken for weak reasoning.</p>
 <div class="scroll"><table><thead><tr><th>Seed</th><th>Family</th><th>Expected</th><th>Model response</th><th>Parser</th><th>Result</th></tr></thead><tbody id="attempts"></tbody></table></div></div>
-<p>Refreshing every 5 seconds. Read-only dashboard bound to 127.0.0.1.</p></main><script>
+<p>New inference uses /api/chat with thinking disabled. Excessive unparseable results trigger automatic pause. Refreshing every 5 seconds.</p></main><script>
 const $=id=>document.getElementById(id);const pct=n=>n==null?'—':(100*n).toFixed(1)+'%';
 function cell(row,text,cls=''){let c=document.createElement('td');c.textContent=String(text??'');if(cls)c.className=cls;row.appendChild(c)}
 async function refresh(){try{const res=await fetch('/api/stats',{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);const s=await res.json();
 $('total').textContent=s.total;$('correct').textContent=s.correct;$('rate').textContent=pct(s.accuracy);
 $('recent').textContent=pct(s.recent_accuracy);$('rescued').textContent=s.rescued_from_format;
-$('unparseable').textContent=s.unparseable;$('verify').textContent=s.verifier_share==null?'—':pct(s.verifier_share);
+$('unparseable').textContent=s.unparseable;$('empty').textContent=s.empty_responses;$('verify').textContent=s.verifier_share==null?'—':pct(s.verifier_share);
 $('time').textContent=pct(s.verifier_time_share);
 $('legacy').textContent='Original logged successes: '+s.legacy_correct+'. Re-scored results are calculated without rewriting logs. Invalid stored task labels: '+s.invalid_stored_labels+'.';
 $('trainer').textContent='Training status: '+(s.training_running?'running':(s.last_training_outcome||'not yet recorded'));

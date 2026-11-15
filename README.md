@@ -1,3 +1,13 @@
+# Continual AI Lab v0.5.2 — Inference stability hotfix
+
+**Hotfix for local Qwen3 failing nearly all arithmetic attempts.** The agent now calls Ollama native `/api/chat` with top-level `think: false` instead of `/api/generate`, uses 192 output tokens for tasks, retries truly empty final answers once, then stops with a clear diagnostic rather than endlessly storing invalid responses. After 24 calls, the multi-agent loop pauses if fewer than 6 responses are parseable. The dashboard distinguishes empty responses from other unparseable results. Historical records are never rewritten.
+
+**Before restarting your learning system:** stop running agents/trainer/dashboard with Ctrl+C; update using `UPDATE_LOCAL_WINDOWS.ps1` according to the existing instructions below. Run `.\.venv\Scripts\python.exe -m continual_ai.inference_doctor --model qwen3:4b`. Only if at least 2/3 are parseable, run `.\.venv\Scripts\python.exe -m continual_ai.multi_agent local --cycles 5` and inspect the updated dashboard. Then restart `START_ALL_WINDOWS.cmd` when the loop is working.
+
+**Important:** A passing parser test does NOT establish strong math accuracy, much less general intelligence. A promoted Qwen3-1.7B adapter does not change Qwen3-4B Ollama. This hotfix has unit-test coverage but cannot establish live model accuracy without your NVIDIA desktop.
+
+---
+
 # Continual AI Lab v0.5.1 — Multi-agent verified learning + gated QLoRA
 
 **Status:** runnable native-Windows local multi-agent loop; scheduled CPU-only GitHub experiment; optional real CUDA QLoRA with independent two-split tests and automatic *local pointer* promotion. This does **not** establish general intelligence improvement and is not a 24/7 hosted inference API.

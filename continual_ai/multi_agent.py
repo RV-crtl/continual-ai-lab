@@ -18,7 +18,7 @@ from pathlib import Path
 import time
 
 from .ollama_client import OllamaClient
-from .tasks import task_for_seed, instruction, verify
+from .tasks import task_for_seed, instruction, verify, extract_integer_answer
 from .storage import LocalStore, CloudStore, record, append_jsonl
 
 VERIFIER_SEED_START = 9_200_000
@@ -92,12 +92,15 @@ class MultiAgentController:
 
     def _run(self, task, role, prompt):
         started = time.monotonic()
-        response = self.client.generate(prompt, temperature=0, max_tokens=80)
+        response = self.client.generate(prompt, temperature=0, max_tokens=192)
         elapsed = time.monotonic() - started
         # Only the deterministic task generator may determine the ground truth.
         ok = verify(task, response)
         self.state['calls'][role] += 1
         self.state['seconds'][role] += elapsed
+        recent = self.state.setdefault('recent_parseable', [])
+        recent.append(extract_integer_answer(response)[0] is not None)
+        self.state['recent_parseable'] = recent[-24:]
         row = record(task, response, self.client.model, ok,
                      split='verify' if role == 'verifier' else 'learn')
         self.store.add(row)
@@ -146,11 +149,19 @@ class MultiAgentController:
                   'measured_seconds': {'learner': round(learner_time, 3),
                       'optimiser': round(optimiser_time, 3),
                       'verifier': round(verification_seconds, 3)},
-                  'cumulative_calls': total_calls}
+                  'cumulative_calls': total_calls,
+                  'parseable_last_24': sum(self.state.get('recent_parseable', []))}
         append_jsonl(self.log, report)
         temp = self.path.with_suffix('.tmp')
         temp.write_text(json.dumps(self.state, indent=2)+'\n', encoding='utf-8')
         os.replace(temp, self.path)
+        recent = self.state.get('recent_parseable', [])
+        if len(recent) >= 24 and sum(recent) < 6:
+            raise RuntimeError(
+                'Inference circuit breaker: fewer than 6 of the last 24 outputs are parseable. '
+                'Agent paused to avoid wasting GPU time. Run: '
+                'python -m continual_ai.inference_doctor'
+            )
         return report
 
 

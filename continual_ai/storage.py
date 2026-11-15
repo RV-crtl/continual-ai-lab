@@ -102,7 +102,7 @@ class LocalStore:
             "WHERE split='learn' ORDER BY id"
         ).fetchall()
         total = len(rows)
-        passed = legacy_passed = rescued = unparseable = bad_label = 0
+        passed = legacy_passed = rescued = unparseable = empty = bad_label = 0
         by_kind = {}
         rolling = []
         for seed, kind, question, expected, response, old_correct in rows:
@@ -114,6 +114,7 @@ class LocalStore:
             passed += int(correct)
             rescued += int(correct and not old_correct)
             unparseable += int(answer is None)
+            empty += int(not (response or '').strip())
             bad_label += int(not valid_label)
             bucket = by_kind.setdefault(kind, {'total': 0, 'passed': 0})
             bucket['total'] += 1
@@ -123,7 +124,8 @@ class LocalStore:
         return {'total': total, 'correct': passed,
                 'accuracy': round(passed / total, 4) if total else None,
                 'legacy_correct': legacy_passed, 'rescued_from_format': rescued,
-                'unparseable': unparseable, 'invalid_stored_labels': bad_label,
+                'unparseable': unparseable, 'empty_responses': empty,
+                'invalid_stored_labels': bad_label,
                 'recent_count': len(window), 'recent_correct': sum(window),
                 'recent_accuracy': round(sum(window)/len(window), 4) if window else None,
                 'kinds': by_kind}
