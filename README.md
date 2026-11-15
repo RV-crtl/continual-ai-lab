@@ -1,155 +1,95 @@
-# Continual AI Lab — Local + GitHub learning prototype
+# Continual AI Lab v0.4 — Multi-agent verified learning + gated QLoRA
 
-A **working research starter** for two independent AI experiments:
+**Status:** runnable native-Windows local multi-agent loop; scheduled CPU-only GitHub experiment; optional real CUDA QLoRA with independent two-split tests and automatic *local pointer* promotion. This does **not** establish general intelligence improvement and is not a 24/7 hosted inference API.
 
-1. **Local Windows AI**: native Windows Ollama chat, persistent chat history, continuously repeated verifiable tasks, SQLite-based verified experiences, local statistics and an optional **real LoRA weight-training** pipeline.
-2. **GitHub-hosted online AI**: a scheduled GitHub Actions workflow running a small Ollama model on an ephemeral CPU machine, persisting verified task attempts and labelled training examples in Git history.
+## The four agents
 
-**This is not an AGI system, and improvement is not guaranteed.** The initial learning curriculum covers only deterministic arithmetic and small algebra problems. Stored experiences, few-shot prompts and fine-tuned adapters are different improvement mechanisms. **The GitHub version does not change the model's weights.** The local LoRA trainer saves a *candidate*, not an automatically deployed model. Nothing uses unverified AI-generated facts as training labels.
+| Role | What it does | Per-cycle LLM calls |
+| --- | --- | ---: |
+| Learner | Answers a generated arithmetic task and retains independently labelled experience | 1 |
+| Optimiser | Tests an alternate prompt strategy; UCB algorithm uses measured successes to select future strategies | 1 |
+| Independent verifier | Checks TWO fresh reserve-range tasks using a deterministic oracle; these examples are never used for training | 2 |
+| Resource governor | Pauses/schedules work based on a GPU memory, temperature and utilisation threshold and prevents simultaneous training/learning | 0 |
 
-## Computer requirements
+**50% of the *LLM inference calls* are allocated to verification.** Calls differ in tokens, duration and power use; this is not 50% measured energy, GPU seconds or global compute. For model-weight promotion, a separate evaluator runs at least **60 paired tasks on each of two disjoint holdout sets** against both incumbent and candidate (at least 240 model generations). Promotion requires a positive main-set gain, no audit-set regression, and limited per-family regression. All labels are recomputed by deterministic maths code. This remains a deliberately narrow arithmetic proof-of-infrastructure.
 
-The provided hardware report confirms Windows 11, Intel Core Ultra 9 275HX, 32 GB system RAM, NVIDIA RTX 5070 Ti Laptop GPU with **12 GB VRAM** (~8.5 GB free at measurement), and approximately **157 GiB free disk**. Start with `qwen3:4b` (approximately 2.5 GB download in Ollama). A dedicated NVIDIA GPU with sufficient VRAM can make model inference and training substantially faster. Close memory-intensive programs before starting if RAM is nearly full. The chosen 4B model is deliberately conservative. A quantised 8B model may fit, depending on context size and other GPU allocations. Real 4B LoRA/QLoRA training requires a separate CUDA-capable training setup and is NOT the default training recipe in this release.
+The optimizer can improve prompts. The QLoRA trainer changes **candidate adapter weights**, never the base Ollama chat weights. Auto-promotion changes a versioned local manifest only after the verification gate; it does not upload or modify an Ollama model, alter guardrails, or grant arbitrary execution access.
 
-- Windows 11; Python 3.11–3.13; current Ollama Windows installation.
-- Ollama download: <https://ollama.com/download/windows>
-- Python: <https://www.python.org/downloads/>
-- No Docker, WSL or VM is required for initial native Windows chat, learn, benchmark and dashboard.
-- Real LoRA training additionally needs a suitable PyTorch installation and preferably a dedicated NVIDIA GPU. Consult <https://unsloth.ai/docs/get-started/install/windows-installation> for up-to-date native Windows training options.
+## Windows 11: update an EXISTING local installation
 
-## Windows quick start (one folder, three launchers)
+**First:** close the current AI chat, learning and dashboard terminal windows before copying updated source files. The local SQLite database and `.venv` remain intact.
 
-**Step 1.** Extract this ZIP to a persistent location, e.g. `C:\Continual-AI-Starter`. Install Python and Ollama if not already installed. Ollama generally starts in the background after Windows installation.
-
-**Step 2.** Open PowerShell in that directory and execute:
+Open PowerShell **in your current old Continual AI project folder** (the folder with `START_ALL_WINDOWS.cmd`), then run:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\INSTALL_WINDOWS.ps1
+$target = (Get-Location).Path
+$zip = Join-Path $env:TEMP 'continual-ai-v04.zip'
+$tmp = Join-Path $env:TEMP 'continual-ai-update-v04'
+Invoke-WebRequest 'https://github.com/RV-crtl/continual-ai-lab/archive/refs/heads/main.zip' -OutFile $zip
+if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+Expand-Archive $zip -DestinationPath $tmp
+& (Join-Path $tmp 'continual-ai-lab-main\UPDATE_LOCAL_WINDOWS.ps1') -Target $target
 ```
 
-The installer creates `.venv`, runs the unit tests, and downloads `qwen3:4b` if Ollama is available. It does not install system-wide Python or Ollama without your involvement. Alternatively, install Ollama manually and use:
+The updater makes a `backups/source-TIMESTAMP` backup of source before replacing it, and runs tests. It does **not** overwrite `data/local`, `.venv`, `.venv-train`, chat histories, or local model files. If you have custom edits to source code, compare the backup before using the new code. To avoid copying files while they are in use, close the existing processes first.
+
+Launch `START_ALL_WINDOWS.cmd`. It starts the multi-agent learner, read-only dashboard and regular Qwen3-4B chat. If `.venv-train` has been installed, it also launches the GPU training supervisor. You can always stop each terminal with Ctrl+C.
+
+The separate `START_AGENTS_WINDOWS.cmd` launches the multi-agent loop without other windows.
+
+## Enable real CUDA training on RTX 5070 Ti Laptop GPU (12 GB VRAM)
+
+**Hardware:** 32 GB RAM and 12 GB NVIDIA VRAM. For native Windows QLoRA with Blackwell `sm_120`, use an up-to-date CUDA 12.8 capable PyTorch wheel and matching bitsandbytes. This installation is **optional** and requires downloads and disk space; start on **AC power**, keep ventilation clear. We cannot verify your actual driver/thermal behaviour remotely.
+
+In PowerShell from the updated project folder:
 
 ```powershell
-ollama pull qwen3:4b
-.\.venv\Scripts\python.exe -m continual_ai.cli doctor
+powershell -NoProfile -ExecutionPolicy Bypass -File .\INSTALL_TRAINING_WINDOWS.ps1
 ```
 
-**Step 3.** Double-click `START_ALL_WINDOWS.cmd` to open chat, learning and dashboard together. Or launch these components separately:
+This builds `.venv-train` separately from your working chat environment, installs CUDA PyTorch, PEFT, Transformers and bitsandbytes, and checks whether GPU kernels actually execute. If the smoke test fails, **do not start training**: inspect the error and fix environment compatibility first. CPU learning and chat can continue.
 
-- `START_CHAT_WINDOWS.cmd` — chat with the local model.
-- `START_LEARNING_WINDOWS.cmd` — run the ongoing independently verified arithmetic/algebra curriculum until you press **Ctrl+C**.
-- `START_DASHBOARD_WINDOWS.cmd` — view local stats at <http://127.0.0.1:8765>.
+Run `START_AUTO_TRAIN_WINDOWS.cmd` (or start `START_ALL_WINDOWS.cmd` once `.venv-train` is present). The training supervisor:
 
-You can use terminal commands instead:
+1. Waits for at least 96 unique, independently checked training labels and at least 96 new examples since its last training attempt.
+2. Waits until NVIDIA reports >=7500 MiB free VRAM, temperature <79 °C and GPU utilisation <50%. Thresholds are conservative scheduling guards, **not** hardware safety guarantees.
+3. Acquires `data/local/training.lock` so the multi-agent loop pauses its inference calls (existing chat is not forcibly stopped).
+4. Loads `Qwen/Qwen3-1.7B` in 4-bit NF4 and trains an isolated LoRA adapter on up to 512 verified arithmetic samples, max 40 gradient update steps, batch size 1 and gradient accumulation 8.
+5. Releases training memory by ending its subprocess; runs paired candidate-versus-incumbent tests on **two separate 60-task evaluation ranges**, never used as training examples.
+6. Only if all gates pass, atomically writes `data/local/training/active.json` referencing the candidate adapter. Otherwise leaves the incumbent intact and records reasons in `data/local/training/reports`.
+7. Repeats after 600 seconds; Ctrl+C stops. Candidate data/models, version pointers and reports stay private under `data/local`.
 
-```powershell
-.\.venv\Scripts\python.exe -m continual_ai.cli doctor
-.\.venv\Scripts\python.exe -m continual_ai.cli chat
-.\.venv\Scripts\python.exe -m continual_ai.cli learn --rounds 12
-.\.venv\Scripts\python.exe -m continual_ai.cli loop --pause 2
-.\.venv\Scripts\python.exe -m continual_ai.cli benchmark --n 24
-.\.venv\Scripts\python.exe -m continual_ai.cli export
+**Important:** The 4B Ollama chat is a different model and remains unchanged. To chat with a **promoted** 1.7B adapter, launch `START_TRAINED_CHAT_WINDOWS.cmd`. It will refuse to start until an adapter passes the gate. A promoted adapter is not automatically a better general assistant; it was evaluated only on the arithmetic curriculum. `python -m continual_ai.training_registry` is not a runnable CLI; rollback can be done via Python code or by restoring `active.json` from checkpoint/history.
+
+### GPU contention and sustained operation
+
+- Only one fine-tuning/evaluation subprocess uses the GPU at a time. The agent controller respects the training lock. The resource governor postpones training if inference or other processes are occupying GPU memory.
+- Ollama has a 60-second keep-alive for this project's model requests to release idle VRAM sooner. Interactive chat activity can still occupy memory; training may defer until GPU resources become available.
+- Do **not** expect fixed wattage or 50% physical energy consumption from the verification budget. Task runtimes are logged in `data/local/agent_cycles.jsonl` and available via the dashboard API.
+- Low free disk space, battery operation, CUDA incompatibilities, excessive GPU temperature and high background utilisation are reasons to pause the trainer. Periodically check NVIDIA temperatures and storage.
+
+## Cloud version (GitHub Actions)
+
+- Workflow: `.github/workflows/online-learning.yml`, or [Actions](https://github.com/RV-crtl/continual-ai-lab/actions).
+- Scheduled **daily at 03:17 UTC** and on relevant source pushes; may be delayed or skipped by GitHub. Hosted CPU runners are ephemeral.
+- Uses local Ollama `qwen3:1.7b`; runs **two four-call multi-agent cycles** per job and persists only public arithmetic attempts, labelled training examples, agent metrics and state to `data/cloud`.
+- Hosted agents do **not** update neural weights. GitHub retains source code and measured results; local CUDA fine-tuning remains on your desktop. Never push local chats or checkpoints to this public repo.
+- GITHUB_TOKEN contents write permission is scoped to the workflow; it will commit only `data/cloud` records. If a protected branch prevents the push, review GitHub Actions logs.
+
+## Verification and auditing
+
+```
+python -m unittest discover -s tests -v
+python -m compileall -q continual_ai
+python -m continual_ai.multi_agent local --cycles 2
 ```
 
-**To select a different model**, use `ollama pull qwen3:8b` and append `--model qwen3:8b` to a chat, learn or loop command. The default is deliberately conservative because GPU VRAM is unknown.
+`tests/test_multiagent.py` checks the call allocation, independent verifier split, cloud resumption, rechecked training labels, and rejection gate. Tests do not need Ollama or CUDA. Live training and native-Windows installation **cannot be validated without running on your machine**; self-tests are not equivalent to a real neural training run.
 
-### Find the correct model for the actual target desktop
+### Security and data handling
 
-Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\CHECK_HARDWARE_WINDOWS.ps1` **on the desktop that will run the model**. The available report describes the Lenovo Legion laptop. If using a different desktop, run the diagnostic on THAT computer to choose its model. The report shows the GPU name, NVIDIA VRAM (when applicable), CPU and free storage. Share that output before choosing a larger model or attempting GPU-intensive fine-tuning.
+The AI cannot modify its evaluator, change GPU governor settings, execute general shell commands, or push code autonomously. It can attempt bounded maths questions and select from fixed prompt strategies. Model downloads should come from official registry sources. Local chats and weights are excluded by `.gitignore`. GitHub Actions arithmetic logs are public. Do not publish `.env`, credentials, personal datasets, or `data/local` content.
 
-### What happens on each learning task?
+## Learning limitations / next research steps
 
-1. A deterministic task generator creates a fresh maths problem and independently computes its correct answer.
-2. The model attempts the problem, optionally receiving up to two previously verified examples of the same task family.
-3. A strict answer parser independently compares the model's response against the computed answer.
-4. The complete attempt and verified mathematical label are saved in local SQLite.
-5. Future runs retrieve verified few-shot examples and accumulate a supervised-training dataset.
-6. A separate held-out benchmark uses seeds outside the learning range and is never put into the training set.
-
-This establishes **verified-experience learning**, not guaranteed gain in model accuracy. The model's internal weights remain unchanged during `loop`.
-
-### Persistent state and privacy
-
-- `data/local/learning.sqlite3`: locally stored task attempts and chats. Excluded from Git.
-- `data/local/verified_sft.jsonl`: independently labelled local supervised data. Excluded from Git.
-- `data/local/benchmarks.jsonl`: local held-out scores. Excluded from Git.
-- `data/cloud/`: hosted experiments only. These records are **committed to GitHub**; no local chat is uploaded.
-- Dashboard binds to `127.0.0.1`, not the public network.
-- There is **no general shell/code execution** by AI-generated instructions. The model cannot rewrite its own safety checks or evaluator.
-
-## Optional real LoRA model training (local only)
-
-**Warning:** Training can exhaust VRAM/RAM and may be slow or impractical without an NVIDIA GPU. Train in an isolated environment, keep the laptop plugged in, and monitor temperatures. The starter uses a small model as the training target because your GPU hasn't been established. The first training run is a proof of functionality, not a claim of better general intelligence.
-
-After collecting at least 32 unique verified task labels (hundreds are better), create a *separate* training environment with GPU-enabled PyTorch, install the optional requirements and run:
-
-```powershell
-.\.venv\Scripts\python.exe -m continual_ai.cli export
-.\.venv\Scripts\python.exe -m pip install -r requirements-train.txt
-.\.venv\Scripts\python.exe -m continual_ai.train_lora --dataset data/local/verified_sft.jsonl --base-model Qwen/Qwen3-0.6B --output-dir data/local/candidates/adapter-v1
-.\.venv\Scripts\python.exe -m continual_ai.benchmark_adapter --base-model Qwen/Qwen3-0.6B --adapter data/local/candidates/adapter-v1 --n 30
-```
-
-`train_lora` actually updates the LoRA weights on the Hugging Face `Qwen/Qwen3-0.6B` base. `benchmark_adapter` measures the pretrained base and candidate on separately seeded tasks and emits a JSON verdict. **No model is automatically promoted or loaded in Ollama**. Ollama `qwen3:4b` and this 0.6B training branch are different base models: adapters cannot be transferred between them. For production, use a model-matched trainer, larger benchmarks, test isolation, and a reviewed deployment gate.
-
-If training libraries conflict on native Windows, do not install random packages blindly: isolate training in Conda or WSL2 according to your GPU and current official documentation. Fine-tuning 4B/8B/27B needs a separate hardware assessment.
-
-## GitHub-hosted version — scheduled, not 24/7
-
-GitHub Actions will run the small Ollama `qwen3:1.7b` model daily, attempt eight independently verifiable problems, store each attempt, and commit its verified examples. A static summary is written to `data/cloud/summary.md`. The 1.7B model is chosen as a modest CPU-friendly upgrade after the original 0.6B model copied the answer-format placeholder in its initial run. This is still not a frontier model. A source-code push or manual dispatch can trigger an initial run, in addition to the scheduled run.
-
-**IMPORTANT:** `INSTALL_WINDOWS.ps1` saying **Setup complete** refers to local Python/Ollama only. It does **not** create a GitHub repository. The next publish step is independent.
-
-**How to publish to GitHub** (the current `RV-crtl/continual-ai-lab` repository is PUBLIC):
-
-1. Install [Git](https://git-scm.com/download/win) and [GitHub CLI](https://cli.github.com/).
-2. Open a new PowerShell in the extracted folder and sign in using `gh auth login`.
-3. Run `PUBLISH_GITHUB_WINDOWS.cmd` by double-clicking it **or** execute `powershell -NoProfile -ExecutionPolicy Bypass -File .\PUBLISH_GITHUB_WINDOWS.ps1`. The script checks that GitHub CLI is signed in to **RV-crtl**, then updates **RV-crtl/continual-ai-lab** (or can create it as a private repository if it does not already exist). It prints the exact URL only after remote verification.
-4. On GitHub, open **Actions** and manually run the workflow named `Online learning experiment (CPU, verified memory)` once to verify the environment and permissions; alternatively run `gh workflow run online-learning.yml --repo RV-crtl/continual-ai-lab`. This may consume metered GitHub Actions minutes.
-5. Confirm `data/cloud/summary.md` and versioned JSONL files appear after the run. Then the cron schedule will execute on the default branch when GitHub schedules it. The linked ChatGPT GitHub App cannot create a repository; the GitHub CLI is required for this one-time step. The app installation must be able to access new repositories to manage them in later conversations.
-
-The publisher targets **only** `RV-crtl/continual-ai-lab`, verifies the authenticated account and uses a non-force push. The current repository is public: never publish private prompts, personal records, access credentials, model checkpoints or local chat logs. GitHub repository publication does not mean a hosted model is continuously running.
-
-A GitHub Actions schedule may be delayed or skipped during platform load. Hosted runners are temporary, usually without useful training GPUs, and private repository minutes are metered. GitHub's default `GITHUB_TOKEN` must permit `contents: write` (subject to repository and organisation settings). The workflow limits each job to 35 minutes and records state only after verified tasks. Repository history grows with each run. Standard scheduled runs are NOT a permanently operating AI service.
-
-GitHub docs: <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows> and <https://docs.github.com/en/actions/reference/runners/github-hosted-runners>.
-
-## Model improvement limitations (important)
-
-| Capability | Local | GitHub Actions |
-| --- | --- | --- |
-| Chat with a downloadable LLM | Yes | Batch inference only |
-| Retain independently verified memories | Yes | Yes, committed JSONL |
-| Memory-assisted task attempts | Yes | Yes |
-| Keep working after the terminal closes | No; needs a persistent process or OS task | Scheduled independently |
-| Change neural network parameters | Optional LoRA candidate training | No |
-| Automatically promote a weight update | No, deliberately gated | No |
-| Validate broad general intelligence | No; maths smoke test only | No |
-
-### Engineering roadmap to a more capable system
-
-- Introduce external verified programming tests (locked-down sandbox), proof checking and research retrieval with source provenance.
-- Expand the benchmark into a sufficiently sized, frozen, leakage-resistant suite across coding, reasoning, instruction following and safety.
-- Train a candidate adapter periodically, evaluate capability regressions and latency, and promote only after passing statistical and safety gates.
-- For always-on remote availability: deploy the **same source** on a persistent GPU server or your own self-hosted runner; keep GitHub as source control and CI, not as the 24/7 model host.
-- Add user approvals for proposed self-modifications, signed releases, resource budgets, circuit breakers and a rollback mechanism before allowing autonomous code edits.
-
-## Troubleshooting
-
-- **Can't connect to Ollama**: start Ollama from the Windows Start menu; check `http://127.0.0.1:11434/api/tags` on your machine.
-- **Not enough RAM**: close programs, run `ollama pull qwen3:1.7b`, then add `--model qwen3:1.7b` to the CLI command. Model weight files are not equivalent to peak process memory usage.
-- **Ollama says model unavailable**: run `ollama list` and pull the tag you intend to use.
-- **Slow learning**: CPU inference on a small model can still be slow. Each task waits for inference to finish. Reduce the model size if needed.
-- **GitHub workflow permission error**: check repository Actions workflow permissions; it needs `contents: write` solely to push `data/cloud/*` after the job.
-- **GitHub Actions disabled or suspended**: enable Actions for the new repo and inspect account quota, permissions, job logs and platform rules.
-- **Model writes incorrect answer formatting**: the verifier will mark it as a failure; this is intentional and does not produce untrusted success labels.
-
-## Safety and quality
-
-- No arbitrary AI-generated code is run. All task ground truths are independently calculated.
-- No auto-push of modified source code. Only dedicated online verified-data paths are automatically committed.
-- GitHub Actions auto-installs Ollama through its current official install script; for a security-hardened deployment pin and review the installer and third-party actions.
-- Never put private chats, access tokens, proprietary documents or personal files under `data/cloud/`.
-- Stop local `loop` with Ctrl+C; saved records survive. Stop online runs via the GitHub Actions UI and disable the scheduled workflow to prevent future runs.
-
-License: No license file included. Choose a repository license after reviewing the licences of any third-party models and tools you redistribute.
+The 6-family arithmetic curriculum is small and can easily overfit. A promotion gate with 60 tasks per split cannot conclusively distinguish small statistical gains. For an advanced system, add independently sourced programming tests with isolated execution, research QA with cited evidence, distributed evaluation, calibration measurements, model quality drift checks, and broad held-out reasoning suites. Avoid automatic ingestion of unverified self-generated answers. This repository is a **practical, measurable learning infrastructure**, not the world's best AI.

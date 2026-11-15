@@ -37,6 +37,6 @@ class OllamaClient:
             "stream": False,
             "think": False,
             "options": {"temperature": temperature, "num_predict": max_tokens},
-            "keep_alive": "10m",
+            "keep_alive": "60s",
         })
         return str(data.get("response", ""))

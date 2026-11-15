@@ -156,6 +156,10 @@ class CloudStore:
 
     def write_summary(self) -> None:
         s = self.stats()
+        agent_path = self.root / 'agent_state.json'
+        agent = json.loads(agent_path.read_text(encoding='utf-8')) if agent_path.exists() else {}
+        calls = agent.get('calls', {})
+        n_calls = sum(calls.values())
         self.root.joinpath("summary.md").write_text(
             "# Online learning experiment\n\n"
             f"Updated (UTC): {stamp()}\n\n"
@@ -163,6 +167,10 @@ class CloudStore:
             f"- Independently correct initial answers: {s['correct']}\n"
             f"- Historical task accuracy: {s['accuracy']}\n"
             "- Persistent changes: independently verified examples and attempt logs\n"
+            f"- Multi-agent cycles: {agent.get('cycles', 0)}\n"
+            f"- Verification inference-call share: {calls.get('verifier', 0)}/{n_calls} "
+            f"({(100*calls.get('verifier', 0)/n_calls if n_calls else 0):.1f}% when calls > 0)\n"
+            "- Budget refers to inference CALLS, not measured GPU energy or elapsed compute.\n"
             "- **Neural weights have NOT been changed by GitHub Actions.**\n"
             "- This is a narrow mathematics smoke test, not a general intelligence benchmark.\n",
             encoding="utf-8",

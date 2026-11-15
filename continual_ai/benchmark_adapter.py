@@ -1,81 +1,110 @@
-"""Compare pretrained base versus candidate LoRA with independent test labels.
+"""Two independent paired holdouts for incumbent/candidate adapter comparisons.
 
-A passing verdict authorizes HUMAN review, not automatic promotion.
+The frozen seed ranges are reserved in tasks.py's generator; neither is
+exported for training. No sampling, no in-context examples, and same tokenizer.
+Passing is still narrow arithmetic evidence, not a general intelligence claim.
 """
 from __future__ import annotations
 import argparse
+import gc
 import json
 from pathlib import Path
-from .tasks import parse_integer_answer, task_for_seed
+from .tasks import task_for_seed, parse_integer_answer
 from .train_lora import prefix_for
 
+SPLITS = {'primary': 9_000_000, 'audit': 9_100_000}
 
-def test_model(model, tok, n: int) -> dict:
+
+def test_model(model, tok, start_seed: int, count: int) -> dict:
     import torch
     model.eval()
-    wins = 0
-    items = []
-    for i in range(n):
-        task = task_for_seed(9_000_000 + i)
+    correct = 0
+    kinds = {}
+    samples = []
+    for i in range(count):
+        task = task_for_seed(start_seed + i)
         prompt = prefix_for(tok, task.question)
-        tokenized = tok(prompt, return_tensors="pt", add_special_tokens=False)
-        tokenized = {k: v.to(model.device) for k, v in tokenized.items()}
-        with torch.no_grad():
-            generated = model.generate(**tokenized, do_sample=False, max_new_tokens=96,
+        batch = tok(prompt, return_tensors='pt', add_special_tokens=False)
+        batch = {k: v.to('cuda') for k, v in batch.items()}
+        with torch.inference_mode():
+            generated = model.generate(**batch, do_sample=False, max_new_tokens=40,
                                        pad_token_id=tok.pad_token_id)
-        output = tok.decode(generated[0, tokenized["input_ids"].shape[1]:], skip_special_tokens=True)
-        correct = parse_integer_answer(output) == task.expected
-        wins += int(correct)
-        items.append({"seed": task.seed, "kind": task.kind, "correct": correct, "answer": output[:150]})
-        print(f"[{'PASS' if correct else 'FAIL'}] {i+1}/{n} {task.kind}", flush=True)
-    return {"n": n, "correct": wins, "accuracy": wins/n, "items": items}
+        output = tok.decode(generated[0, batch['input_ids'].shape[1]:], skip_special_tokens=True)
+        ok = parse_integer_answer(output) == task.expected
+        correct += int(ok)
+        entry = kinds.setdefault(task.kind, {'passed': 0, 'total': 0})
+        entry['passed'] += int(ok)
+        entry['total'] += 1
+        samples.append({'seed': task.seed, 'kind': task.kind, 'correct': bool(ok)})
+    return {'n': count, 'correct': correct, 'accuracy': round(correct/count, 4),
+            'kinds': kinds, 'samples': samples}
 
 
-def compare(base_model: str, adapter: Path, n: int, outfile: Path):
-    import gc
+def compare(base_model: str, candidate_adapter: Path, incumbent_adapter: Path | None,
+            n: int, outfile: Path):
+    if not 60 <= n <= 360:
+        raise ValueError('Require 60–360 paired tests per independent benchmark split')
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
     from peft import PeftModel
-    if n < 12:
-        raise ValueError("At least 12 held-out tests required")
+    if not torch.cuda.is_available():
+        raise RuntimeError('A CUDA GPU is required for the comparison')
     tok = AutoTokenizer.from_pretrained(base_model, trust_remote_code=False)
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
-    def fresh_base():
-        return AutoModelForCausalLM.from_pretrained(base_model, trust_remote_code=False,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32).to(
-            "cuda" if torch.cuda.is_available() else "cpu")
-    model = fresh_base()
-    print("Testing base model")
-    baseline = test_model(model, tok, n)
+    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type='nf4',
+        bnb_4bit_compute_dtype=dtype, bnb_4bit_use_double_quant=True)
+    def load_model(adapter):
+        base = AutoModelForCausalLM.from_pretrained(
+            base_model, trust_remote_code=False,
+            quantization_config=config, device_map={'':0}, torch_dtype=dtype)
+        return PeftModel.from_pretrained(base, str(adapter), is_trainable=False) if adapter else base
+
+    baseline = {}
+    model = load_model(incumbent_adapter)
+    for name, seed in SPLITS.items():
+        print(f'Incumbent: {name}', flush=True)
+        baseline[name] = test_model(model, tok, seed, n)
     del model
     gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    print("Testing candidate adapter")
-    model = PeftModel.from_pretrained(fresh_base(), str(adapter), is_trainable=False)
-    candidate = test_model(model, tok, n)
-    improvement = candidate["correct"] - baseline["correct"]
-    # Require 2 additional successes on >=12 trials; still insufficient for broad claims.
-    verdict = {"base_model": base_model, "adapter": str(adapter), "baseline": baseline,
-               "candidate": candidate, "pass": improvement >= 2,
-               "correct_improvement": improvement,
-               "status": "REVIEW_CANDIDATE" if improvement >= 2 else "REJECT_CANDIDATE",
-               "note": "Narrow small-sample benchmark; review wider skills and regressions manually."}
+    torch.cuda.empty_cache()
+    model = load_model(candidate_adapter)
+    candidate = {}
+    for name, seed in SPLITS.items():
+        print(f'Candidate: {name}', flush=True)
+        candidate[name] = test_model(model, tok, seed, n)
+    del model
+    gc.collect()
+    torch.cuda.empty_cache()
+    from .training_registry import evaluate_gate
+    report = {
+        'base_model': base_model,
+        'candidate_adapter': str(candidate_adapter.resolve()),
+        'incumbent_adapter': str(incumbent_adapter.resolve()) if incumbent_adapter else None,
+        'primary': {'baseline': baseline['primary'], 'candidate': candidate['primary']},
+        'audit': {'baseline': baseline['audit'], 'candidate': candidate['audit']},
+        'note': 'Reserved paired arithmetic tests; not evidence of general intelligence',
+    }
+    passed, reasons = evaluate_gate(report)
+    report['gate_passed'] = passed
+    report['gate_reasons'] = reasons
     outfile.parent.mkdir(parents=True, exist_ok=True)
-    outfile.write_text(json.dumps(verdict, indent=2) + "\n", encoding="utf-8")
-    print(f"Evaluation: {verdict['status']} | {outfile}")
+    outfile.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+    print('PROMOTION ELIGIBLE' if passed else 'REJECTED', '; '.join(reasons), flush=True)
+    return report
 
 
-def main():
-    p = argparse.ArgumentParser(description="Independent base-vs-LoRA benchmark")
-    p.add_argument("--base-model", default="Qwen/Qwen3-0.6B")
-    p.add_argument("--adapter", type=Path, required=True)
-    p.add_argument("--n", type=int, default=30)
-    p.add_argument("--out", type=Path, default=Path("data/local/adapter_comparison.json"))
-    args = p.parse_args()
-    compare(args.base_model, args.adapter, args.n, args.out)
+def main(argv=None):
+    p=argparse.ArgumentParser(description='Paired double-holdout candidate evaluation')
+    p.add_argument('--base-model', default='Qwen/Qwen3-1.7B')
+    p.add_argument('--candidate-adapter', type=Path, required=True)
+    p.add_argument('--incumbent-adapter', type=Path)
+    p.add_argument('--n', type=int, default=60)
+    p.add_argument('--out', type=Path, required=True)
+    a=p.parse_args(argv)
+    compare(a.base_model, a.candidate_adapter, a.incumbent_adapter, a.n, a.out)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
