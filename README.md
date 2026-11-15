@@ -1,4 +1,4 @@
-# Continual AI Lab v0.4 — Multi-agent verified learning + gated QLoRA
+# Continual AI Lab v0.4.1 — Multi-agent verified learning + gated QLoRA
 
 **Status:** runnable native-Windows local multi-agent loop; scheduled CPU-only GitHub experiment; optional real CUDA QLoRA with independent two-split tests and automatic *local pointer* promotion. This does **not** establish general intelligence improvement and is not a 24/7 hosted inference API.
 
@@ -8,10 +8,10 @@
 | --- | --- | ---: |
 | Learner | Answers a generated arithmetic task and retains independently labelled experience | 1 |
 | Optimiser | Tests an alternate prompt strategy; UCB algorithm uses measured successes to select future strategies | 1 |
-| Independent verifier | Checks TWO fresh reserve-range tasks using a deterministic oracle; these examples are never used for training | 2 |
+| Independent verifier | Checks at least TWO fresh reserved tasks; adds bounded checks until verification inference time reaches at least half the cycle | 2–10 |
 | Resource governor | Pauses/schedules work based on a GPU memory, temperature and utilisation threshold and prevents simultaneous training/learning | 0 |
 
-**50% of the *LLM inference calls* are allocated to verification.** Calls differ in tokens, duration and power use; this is not 50% measured energy, GPU seconds or global compute. For model-weight promotion, a separate evaluator runs at least **60 paired tasks on each of two disjoint holdout sets** against both incumbent and candidate (at least 240 model generations). Promotion requires a positive main-set gain, no audit-set regression, and limited per-family regression. All labels are recomputed by deterministic maths code. This remains a deliberately narrow arithmetic proof-of-infrastructure.
+**At least 50% of scheduled model calls are reserved for verification.** The controller uses measured inference-call time as a second target, adding checks until verification occupies at least half the cycle or ten verifier calls are reached. This is a wall-time proxy, not a measurement of electrical energy or GPU compute. For model-weight promotion, a separate evaluator runs at least **60 paired tasks on each of two disjoint holdout sets** against both incumbent and candidate (at least 240 model generations). Promotion requires a positive main-set gain, no audit-set regression, and limited per-family regression. All labels are recomputed by deterministic maths code. This remains a deliberately narrow arithmetic proof-of-infrastructure.
 
 The optimizer can improve prompts. The QLoRA trainer changes **candidate adapter weights**, never the base Ollama chat weights. Auto-promotion changes a versioned local manifest only after the verification gate; it does not upload or modify an Ollama model, alter guardrails, or grant arbitrary execution access.
 
@@ -23,8 +23,8 @@ Open PowerShell **in your current old Continual AI project folder** (the folder 
 
 ```powershell
 $target = (Get-Location).Path
-$zip = Join-Path $env:TEMP 'continual-ai-v04.zip'
-$tmp = Join-Path $env:TEMP 'continual-ai-update-v04'
+$zip = Join-Path $env:TEMP 'continual-ai-v041.zip'
+$tmp = Join-Path $env:TEMP 'continual-ai-update-v041'
 Invoke-WebRequest 'https://github.com/RV-crtl/continual-ai-lab/archive/refs/heads/main.zip' -OutFile $zip
 if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
 Expand-Archive $zip -DestinationPath $tmp
@@ -54,7 +54,7 @@ Run `START_AUTO_TRAIN_WINDOWS.cmd` (or start `START_ALL_WINDOWS.cmd` once `.venv
 1. Waits for at least 96 unique, independently checked training labels and at least 96 new examples since its last training attempt.
 2. Waits until NVIDIA reports >=7500 MiB free VRAM, temperature <79 °C and GPU utilisation <50%. Thresholds are conservative scheduling guards, **not** hardware safety guarantees.
 3. Acquires `data/local/training.lock` so the multi-agent loop pauses its inference calls (existing chat is not forcibly stopped).
-4. Loads `Qwen/Qwen3-1.7B` in 4-bit NF4 and trains an isolated LoRA adapter on up to 512 verified arithmetic samples, max 40 gradient update steps, batch size 1 and gradient accumulation 8.
+4. Supervises training and evaluation subprocesses with a wall-time limit and stops a process if GPU temperature remains >=84 °C for three ten-second checks. Loads `Qwen/Qwen3-1.7B` in 4-bit NF4 and trains an isolated LoRA adapter on up to 512 verified arithmetic samples, max 40 gradient update steps, batch size 1 and gradient accumulation 8.
 5. Releases training memory by ending its subprocess; runs paired candidate-versus-incumbent tests on **two separate 60-task evaluation ranges**, never used as training examples.
 6. Only if all gates pass, atomically writes `data/local/training/active.json` referencing the candidate adapter. Otherwise leaves the incumbent intact and records reasons in `data/local/training/reports`.
 7. Repeats after 600 seconds; Ctrl+C stops. Candidate data/models, version pointers and reports stay private under `data/local`.
@@ -66,7 +66,7 @@ Run `START_AUTO_TRAIN_WINDOWS.cmd` (or start `START_ALL_WINDOWS.cmd` once `.venv
 - Only one fine-tuning/evaluation subprocess uses the GPU at a time. The agent controller respects the training lock. The resource governor postpones training if inference or other processes are occupying GPU memory.
 - Ollama has a 60-second keep-alive for this project's model requests to release idle VRAM sooner. Interactive chat activity can still occupy memory; training may defer until GPU resources become available.
 - Do **not** expect fixed wattage or 50% physical energy consumption from the verification budget. Task runtimes are logged in `data/local/agent_cycles.jsonl` and available via the dashboard API.
-- Low free disk space, battery operation, CUDA incompatibilities, excessive GPU temperature and high background utilisation are reasons to pause the trainer. Periodically check NVIDIA temperatures and storage.
+- Low free disk space, battery operation, CUDA incompatibilities, excessive GPU temperature and high background utilisation are reasons to pause the trainer. Software sampling is a fallback, not a guarantee of safe operating temperatures. Periodically check NVIDIA temperatures and storage.
 
 ## Cloud version (GitHub Actions)
 

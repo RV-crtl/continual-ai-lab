@@ -19,7 +19,7 @@ code{color:#a1eab5}button{padding:10px 14px;cursor:pointer}
 <div class='panel'><div class='cards'>
 <div><small>Attempts</small><div class='metric' id='total'>—</div></div>
 <div><small>Verified successes</small><div class='metric' id='correct'>—</div></div>
-<div><small>Historical task accuracy</small><div class='metric' id='rate'>—</div></div><div><small>Verifier budget</small><div class='metric' id='verify'>—</div></div><div><small>Promoted adapter</small><div class='metric' id='active'>—</div></div>
+<div><small>Historical task accuracy</small><div class='metric' id='rate'>—</div></div><div><small>Verifier budget</small><div class='metric' id='verify'>—</div></div><div><small>Promoted adapter</small><div class='metric' id='active'>—</div></div><div><small>Verifier inference time</small><div class='metric' id='time'>—</div></div>
 </div></div><div class='panel'><h2>Commands</h2>
 <p><code>python -m continual_ai.cli chat</code> — Talk to the model</p>
 <p><code>python -m continual_ai.multi_agent local</code> — Multi-agent learning (50% verification call budget)</p><p><code>START_AUTO_TRAIN_WINDOWS.cmd</code> — GPU-governed QLoRA and independent candidate comparison</p><p><code>START_TRAINED_CHAT_WINDOWS.cmd</code> — Chat with the promoted adapter after validation</p>
@@ -29,7 +29,7 @@ code{color:#a1eab5}button{padding:10px 14px;cursor:pointer}
 </div><p>Stats refresh every 5 seconds. Dashboard bound to 127.0.0.1.</p></main>
 <script>async function load(){try{let r=await fetch('/api/stats');let s=await r.json();
 for(let k of ['total','correct'])document.getElementById(k).textContent=s[k];
-document.getElementById('rate').textContent=s.accuracy===null?'—':(100*s.accuracy).toFixed(1)+'%';document.getElementById('verify').textContent=s.verifier_share===null?'—':(100*s.verifier_share).toFixed(0)+'% calls';document.getElementById('active').textContent=s.active_adapter?'Yes':'No';
+document.getElementById('rate').textContent=s.accuracy===null?'—':(100*s.accuracy).toFixed(1)+'%';document.getElementById('verify').textContent=s.verifier_share===null?'—':(100*s.verifier_share).toFixed(0)+'% calls';document.getElementById('active').textContent=s.active_adapter?'Yes':'No';document.getElementById('time').textContent=s.verifier_time_share===null?'—':(100*s.verifier_time_share).toFixed(0)+'%';
 }catch(e){console.error(e)}}load();setInterval(load,5000);</script></body></html>"""
 
 
@@ -47,6 +47,9 @@ def serve(db_path: Path, port: int = 8765):
                     stats['verifier_share'] = (calls.get('verifier', 0) / total) if total else None
                     stats['agent_cycles'] = agent.get('cycles', 0)
                     stats['agent_time_seconds'] = agent.get('seconds', {})
+                    agent_seconds = agent.get('seconds', {})
+                    agent_total_seconds = sum(agent_seconds.values())
+                    stats['verifier_time_share'] = (agent_seconds.get('verifier', 0) / agent_total_seconds) if agent_total_seconds else None
                     from .training_registry import read_active
                     try:
                         active = read_active(db_path.parent / 'training')

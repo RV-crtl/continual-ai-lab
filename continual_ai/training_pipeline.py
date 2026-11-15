@@ -41,8 +41,37 @@ def gpu_status() -> dict:
 
 
 def run_command(args: list[str], timeout_seconds: int) -> None:
+    """Supervise a GPU subprocess; stop on timeout or sustained excessive heat.
+
+    This is an advisory software backstop, not a replacement for hardware
+    thermal protection or user monitoring. No arbitrary generated shell commands.
+    """
     print('Executing:', ' '.join(args), flush=True)
-    subprocess.run(args, check=True, timeout=timeout_seconds)
+    child = subprocess.Popen(args)
+    started = time.monotonic()
+    hot_checks = 0
+    try:
+        while child.poll() is None:
+            if time.monotonic() - started > timeout_seconds:
+                raise subprocess.TimeoutExpired(args, timeout_seconds)
+            current = gpu_status()
+            if current.get('temp_c', 0) >= 84:
+                hot_checks += 1
+            else:
+                hot_checks = 0
+            if hot_checks >= 3:
+                raise RuntimeError('GPU stayed >=84 C across three 10-second samples; training stopped')
+            time.sleep(10)
+        if child.returncode:
+            raise subprocess.CalledProcessError(child.returncode, args)
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait(timeout=10)
 
 
 def save_state(path: Path, data: dict) -> None:

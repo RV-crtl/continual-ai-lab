@@ -1,8 +1,8 @@
 """Four roles: learner, strategy optimiser, independent verifier, resource governor.
 
-Verification receives 2 of 4 *inference calls* per cycle (50% scheduled call
-budget). This is NOT a claim about 50% GPU energy or wall-clock time; measured
-runtime per role is reported to make the distinction explicit.
+Verification receives at least 2 of 4 *inference calls* per cycle and
+additional calls (bounded to 10 verifier calls) until measured inference time is
+at least half the cycle. Wall-time is a proxy, NOT a measured GPU-energy split.
 
 The verifier uses fresh, reserved tasks and the deterministic oracle; the model
 is not allowed to decide whether its own answer is correct. Live verifier tasks
@@ -22,6 +22,8 @@ from .tasks import task_for_seed, instruction, verify
 from .storage import LocalStore, CloudStore, record, append_jsonl
 
 VERIFIER_SEED_START = 9_200_000
+MAX_VERIFIER_CALLS = 10
+VERIFIER_SEED_STRIDE = MAX_VERIFIER_CALLS + 2
 STRATEGIES = ('few_shot', 'zero_shot', 'explicit_format')
 
 
@@ -121,19 +123,25 @@ class MultiAgentController:
         verified = 0
         verification_seconds = 0.0
         cycle_index = self.state['cycles']
-        for j in range(self.budget.verifier):
-            task = task_for_seed(VERIFIER_SEED_START + 2*cycle_index + j)
+        j = 0
+        # Minimum 50% scheduled calls; then use measured inference time to
+        # approach a 50% verification share. Bound costs on CPU runners.
+        while (j < self.budget.verifier or verification_seconds < learner_time + optimiser_time) and j < MAX_VERIFIER_CALLS:
+            task = task_for_seed(VERIFIER_SEED_START + VERIFIER_SEED_STRIDE*cycle_index + j)
             ok, duration, _ = self._run(task, 'verifier', strategy_prompt(task, None, 'zero_shot'))
             verified += int(ok)
             verification_seconds += duration
+            j += 1
         self.state['verified_correct'] += verified
         self.state['cycles'] += 1
         # Persist cycle metadata atomically; interrupted attempts remain in store.
         total_calls = sum(self.state['calls'].values())
         report = {'cycle': self.state['cycles'], 'strategy': strategy,
                   'learner_correct': bool(baseline), 'optimiser_correct': bool(improved),
-                  'verifier_correct': verified, 'verifier_total': self.budget.verifier,
-                  'verification_call_share': self.budget.verification_share,
+                  'verifier_correct': verified, 'verifier_total': j,
+                  'verification_call_share': round(j / (self.budget.learner + self.budget.optimiser + j), 4),
+                  'verification_inference_time_share': round(verification_seconds / (learner_time + optimiser_time + verification_seconds), 4),
+                  'verification_time_target_met': verification_seconds >= learner_time + optimiser_time,
                   'measured_seconds': {'learner': round(learner_time, 3),
                       'optimiser': round(optimiser_time, 3),
                       'verifier': round(verification_seconds, 3)},

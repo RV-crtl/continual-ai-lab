@@ -160,6 +160,9 @@ class CloudStore:
         agent = json.loads(agent_path.read_text(encoding='utf-8')) if agent_path.exists() else {}
         calls = agent.get('calls', {})
         n_calls = sum(calls.values())
+        duration = agent.get('seconds', {})
+        n_seconds = sum(duration.values())
+        verifier_seconds = duration.get('verifier', 0.0)
         self.root.joinpath("summary.md").write_text(
             "# Online learning experiment\n\n"
             f"Updated (UTC): {stamp()}\n\n"
@@ -170,7 +173,9 @@ class CloudStore:
             f"- Multi-agent cycles: {agent.get('cycles', 0)}\n"
             f"- Verification inference-call share: {calls.get('verifier', 0)}/{n_calls} "
             f"({(100*calls.get('verifier', 0)/n_calls if n_calls else 0):.1f}% when calls > 0)\n"
-            "- Budget refers to inference CALLS, not measured GPU energy or elapsed compute.\n"
+            f"- Measured verifier inference wall-time: {verifier_seconds:.1f}/{n_seconds:.1f} seconds "
+            f"({(100*verifier_seconds/n_seconds if n_seconds else 0):.1f}%)\n"
+            "- A bounded scheduler targets >=50% verifier inference time per cycle. Wall-time is NOT GPU electrical energy.\n"
             "- **Neural weights have NOT been changed by GitHub Actions.**\n"
             "- This is a narrow mathematics smoke test, not a general intelligence benchmark.\n",
             encoding="utf-8",

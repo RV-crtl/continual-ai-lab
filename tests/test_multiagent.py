@@ -15,7 +15,7 @@ class FakeAI:
     model = 'test-model'
     def generate(self, prompt, **kwargs):
         # Identify the final task; any demonstration text must not affect it.
-        for seed in list(range(20)) + [VERIFIER_SEED_START+i for i in range(20)]:
+        for seed in list(range(20)) + [VERIFIER_SEED_START+i for i in range(40)]:
             task = task_for_seed(seed)
             if prompt.rstrip().endswith(task.question):
                 return f'ANSWER: {task.expected}'
@@ -35,17 +35,20 @@ class MultiAgentTests(unittest.TestCase):
             db=CloudStore(root)
             c=MultiAgentController(db, FakeAI(), root)
             result=c.cycle()
-            self.assertEqual(result['verifier_total'], 2)
-            self.assertEqual(result['verifier_correct'], 2)
+            self.assertGreaterEqual(result['verifier_total'], 2)
+            self.assertLessEqual(result['verifier_total'], 10)
+            self.assertEqual(result['verifier_correct'], result['verifier_total'])
             self.assertEqual(db.get_next_seed(), 2)
             self.assertEqual(db.stats()['total'], 2)
             self.assertEqual(len((root/'verified_examples.jsonl').read_text().splitlines()), 2)
-            self.assertEqual(c.state['calls'], {'learner':1, 'optimiser':1, 'verifier':2})
+            self.assertEqual(c.state['calls']['learner'], 1)
+            self.assertEqual(c.state['calls']['optimiser'], 1)
+            self.assertGreaterEqual(c.state['calls']['verifier'], 2)
             self.assertEqual(choose_strategy(c.state['strategies']), 'zero_shot')
             # Resume uses reserved verifier seeds from next cycle, never trains on them.
             c2=MultiAgentController(CloudStore(root), FakeAI(), root)
             c2.cycle()
-            self.assertEqual(c2.state['calls']['verifier'], 4)
+            self.assertGreaterEqual(c2.state['calls']['verifier'], 4)
             self.assertEqual(CloudStore(root).stats()['total'], 4)
             self.assertEqual(len((root/'verified_examples.jsonl').read_text().splitlines()), 4)
 
@@ -55,7 +58,7 @@ class MultiAgentTests(unittest.TestCase):
             s=LocalStore(root/'local.sqlite3')
             MultiAgentController(s, FakeAI(), root).cycle()
             self.assertEqual(len(s.training_examples()), 2)
-            self.assertEqual(s.db.execute("SELECT COUNT(*) FROM attempts WHERE split='verify'").fetchone()[0],2)
+            self.assertGreaterEqual(s.db.execute("SELECT COUNT(*) FROM attempts WHERE split='verify'").fetchone()[0],2)
             s.close()
 
     def test_training_dataset_revalidates_ground_truth(self):
