@@ -92,7 +92,7 @@ class MultiAgentController:
 
     def _run(self, task, role, prompt):
         started = time.monotonic()
-        response = self.client.generate(prompt, temperature=0, max_tokens=192)
+        response = self.client.generate(prompt, temperature=0, max_tokens=256, answer_mode=True)
         elapsed = time.monotonic() - started
         # Only the deterministic task generator may determine the ground truth.
         ok = verify(task, response)
@@ -181,7 +181,7 @@ def main(argv=None):
     if a.mode == 'cloud' and not 1 <= a.cycles <= 25:
         p.error('Cloud mode requires --cycles between 1 and 25')
     root = a.state_dir or Path('data/cloud' if a.mode == 'cloud' else 'data/local')
-    model = a.model or ('qwen3:1.7b' if a.mode == 'cloud' else 'qwen3:4b')
+    model = a.model or ('qwen3:1.7b' if a.mode == 'cloud' else os.getenv('CAI_MODEL', 'qwen3:8b'))
     store = CloudStore(root) if a.mode == 'cloud' else LocalStore(a.db)
     client = OllamaClient(model, a.endpoint)
     controller = MultiAgentController(store, client, root)

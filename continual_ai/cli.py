@@ -21,7 +21,7 @@ def args_parser() -> argparse.ArgumentParser:
     for name in ["doctor", "chat", "learn", "loop", "benchmark", "export", "dashboard", "cloud"]:
         cmd = command.add_parser(name)
         if name in ("doctor", "chat", "learn", "loop", "benchmark", "cloud"):
-            cmd.add_argument("--model", default=os.getenv("CAI_MODEL", "qwen3:0.6b" if name == "cloud" else "qwen3:4b"))
+            cmd.add_argument("--model", default=os.getenv("CAI_MODEL", "qwen3:0.6b" if name == "cloud" else "qwen3:8b"))
             cmd.add_argument("--endpoint", default=os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434"))
         if name in ("learn", "cloud"):
             cmd.add_argument("--rounds", type=int, default=5 if name == "learn" else 8)

@@ -1,42 +1,49 @@
-"""Read-only inference diagnostics. No training, no local-data modification."""
+"""Read-only model quality gate; does not write training examples or change weights."""
 from __future__ import annotations
 import argparse
 import json
+import os
 from .ollama_client import OllamaClient
 from .tasks import task_for_seed, extract_integer_answer
 
+SEEDS = (2, 3, 4, 5, 6, 7)
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description='Test model chat response before running autonomous learning')
-    p.add_argument('--model', default='qwen3:4b')
-    p.add_argument('--endpoint', default='http://127.0.0.1:11434')
+    p = argparse.ArgumentParser(description="Verify arithmetic inference before starting agents")
+    p.add_argument("--model", default=os.getenv("CAI_MODEL", "qwen3:8b"))
+    p.add_argument("--endpoint", default="http://127.0.0.1:11434")
+    p.add_argument("--samples", type=int, default=3, choices=(3, 6))
     a = p.parse_args(argv)
     client = OllamaClient(a.model, a.endpoint)
-    print('Model:', a.model, '\nEndpoint:', a.endpoint)
-    print('Installed models:', client.models())
-    parseable = 0
-    for seed in (2, 3, 4):
+    print("Model:", a.model, "Endpoint:", a.endpoint, flush=True)
+    installed = client.models()
+    print("Installed:", installed, flush=True)
+    if a.model not in installed:
+        print("Model not installed. Run: ollama pull " + a.model, flush=True)
+        return 2
+    parsed_count = correct = 0
+    for seed in SEEDS[:a.samples]:
         task = task_for_seed(seed)
-        prompt = 'Solve the arithmetic problem and return ONLY the integer answer.\n' + task.question
+        prompt = "Compute the integer answer to the following problem.\n" + task.question
         try:
-            output = client.generate(prompt, temperature=0, max_tokens=192)
-        except RuntimeError as e:
-            print('INFERENCE ERROR:', e)
+            output = client.generate(prompt, temperature=0, max_tokens=256, answer_mode=True)
+            answer, method = extract_integer_answer(output)
+            metadata = client.last_metadata
+        except RuntimeError as ex:
+            print("INFERENCE ERROR:", ex, flush=True)
             return 2
-        answer, parser = extract_integer_answer(output)
-        parseable += int(answer is not None)
-        print(json.dumps({
-            'seed':seed, 'question':task.question, 'expected':task.expected,
-            'output':output[:240], 'parser':parser, 'parsed':answer,
-            'correct':answer==task.expected, 'ollama':client.last_metadata,
-        }, ensure_ascii=False))
-    print(f'Parseable answers: {parseable}/3')
-    if parseable < 2:
-        print('FAILED diagnostic. Do NOT resume autonomous learning. Check Ollama version/model.')
+        parsed_count += int(answer is not None)
+        correct += int(answer == task.expected)
+        print(json.dumps({"question": task.question, "expected": task.expected,
+                          "response": output[:300], "parsed": answer,
+                          "parser": method, "correct": answer == task.expected,
+                          "ollama": metadata}, ensure_ascii=False), flush=True)
+    print(f"Doctor: {correct}/{a.samples} correct; {parsed_count}/{a.samples} parseable", flush=True)
+    if correct != a.samples:
+        print("FAIL: keep agents and GPU training stopped. Test qwen3:8b or another instruct model.", flush=True)
         return 1
-    print('Inference is producing parsable answers. Inspect correctness and continue with a small run.')
+    print("PASS: complete arithmetic outputs. First run a SMALL 5-cycle agent test.", flush=True)
     return 0
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

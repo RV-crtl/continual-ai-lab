@@ -9,7 +9,7 @@ def learning_round(store, client: OllamaClient, *, use_memory: bool = True) -> d
     seed = store.get_next_seed()
     task = task_for_seed(seed)
     examples = store.examples(task.kind) if use_memory else []
-    response = client.generate(instruction(task, examples), max_tokens=192)
+    response = client.generate(instruction(task, examples), max_tokens=256, answer_mode=True)
     correct = verify(task, response)
     row = record(task, response, client.model, correct)
     store.add(row)
@@ -24,7 +24,7 @@ def evaluate(client: OllamaClient, n: int = 12, store=None) -> dict:
     per_kind = {}
     for ix in range(n):
         task = task_for_seed(9_000_000 + ix)
-        response = client.generate(instruction(task, None))
+        response = client.generate(instruction(task, None), max_tokens=256, answer_mode=True)
         ok = verify(task, response)
         wins += int(ok)
         bucket = per_kind.setdefault(task.kind, {"passed": 0, "total": 0})

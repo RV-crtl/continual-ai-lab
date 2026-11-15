@@ -1,3 +1,7 @@
+## v0.5.3: Inference repair (local Windows)
+
+Three observed qwen3:4b outputs stopped at the 192-token cap before returning an answer. Local agents now default to qwen3:8b, request JSON-schema integer answers, and refuse to log truncated or unparseable completions. The Windows launchers enforce a three-question health check before starting agents and training. After updating, run `ollama pull qwen3:8b` and `python -m continual_ai.inference_doctor --model qwen3:8b`; require 3/3 correct. The GPU training of Qwen3-1.7B is separate and does not upgrade the 8B learner. None of these changes proves on-device inference until tested on the user's machine.
+
 # Continual AI Lab v0.5.2 — Inference stability hotfix
 
 **Hotfix for local Qwen3 failing nearly all arithmetic attempts.** The agent now calls Ollama native `/api/chat` with top-level `think: false` instead of `/api/generate`, uses 192 output tokens for tasks, retries truly empty final answers once, then stops with a clear diagnostic rather than endlessly storing invalid responses. After 24 calls, the multi-agent loop pauses if fewer than 6 responses are parseable. The dashboard distinguishes empty responses from other unparseable results. Historical records are never rewritten.

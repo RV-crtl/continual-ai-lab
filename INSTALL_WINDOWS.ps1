@@ -23,13 +23,13 @@ if ($LASTEXITCODE -ne 0) { throw 'Local project self-tests failed.' }
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
   Write-Host 'Ollama not on PATH. Install from https://ollama.com/download/windows' -ForegroundColor Yellow
   Write-Host 'Then open a NEW PowerShell window, return to this folder and run:'
-  Write-Host '  ollama pull qwen3:4b'
+  Write-Host '  ollama pull qwen3:8b'
   Write-Host '  .\.venv\Scripts\python.exe -m continual_ai.cli doctor'
   exit 0
 }
-Write-Host 'Downloading an initial local model (approx. 2.5 GB)...'
-& ollama pull qwen3:4b
-if ($LASTEXITCODE -ne 0) { throw 'Model download failed; try ollama pull qwen3:4b later.' }
+Write-Host 'Downloading an initial local model (approximately 5 GB)...'
+& ollama pull qwen3:8b
+if ($LASTEXITCODE -ne 0) { throw 'Model download failed; try ollama pull qwen3:8b later.' }
 & $venvPython -m continual_ai.cli doctor
 if ($LASTEXITCODE -ne 0) { throw 'Diagnostics failed.' }
 Write-Host 'Setup complete. Next: .\.venv\Scripts\python.exe -m continual_ai.cli chat' -ForegroundColor Green

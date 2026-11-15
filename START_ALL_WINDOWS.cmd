@@ -5,6 +5,13 @@ if not exist ".venv\Scripts\python.exe" (
  pause
  exit /b 1
 )
+echo Running local inference readiness test...
+".venv\Scripts\python.exe" -m continual_ai.inference_doctor --model qwen3:8b
+if errorlevel 1 (
+ echo Preflight FAILED. Do not start learning or training. Run: ollama pull qwen3:8b
+ pause
+ exit /b 1
+)
 start "Continual AI - Multi Agents" cmd /k "cd /d ""%~dp0"" && .venv\Scripts\python.exe -m continual_ai.multi_agent local --pause 2"
 start "Continual AI - Dashboard" cmd /k "cd /d ""%~dp0"" && .venv\Scripts\python.exe -m continual_ai.cli dashboard"
 if exist ".venv-train\Scripts\python.exe" (
