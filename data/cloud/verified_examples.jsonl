@@ -14,3 +14,7 @@
 {"expected": 4148, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-61) times (-68).", "seed": 13, "verified": true}
 {"expected": 39, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (1677) divided by (43).", "seed": 14, "verified": true}
 {"expected": 0, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 864 is divided by 6.", "seed": 15, "verified": true}
+{"expected": 22, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (10)*x + (-55) = 165.", "seed": 16, "verified": true}
+{"expected": -56, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 5 squared minus 9 squared.", "seed": 17, "verified": true}
+{"expected": 1026, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (818) + (208).", "seed": 18, "verified": true}
+{"expected": 2982, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (71) times (42).", "seed": 19, "verified": true}
