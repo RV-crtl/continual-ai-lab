@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import sqlite3
 
+from .tasks import extract_integer_answer, task_for_seed
+
 
 def stamp() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
@@ -73,17 +75,75 @@ class LocalStore:
         return 0 if value is None else int(value) + 1
 
     def examples(self, kind: str, n: int = 2) -> list[dict]:
+        # Recheck stored examples under the corrected parser and deterministic oracle.
+        # Never promote an incorrect model answer merely because a database bit says 1.
         rows = self.db.execute(
-            "SELECT question, expected FROM attempts WHERE correct=1 "
-            "AND split='learn' AND kind=? ORDER BY id DESC LIMIT ?", (kind, n),
+            "SELECT seed,question,expected,model_response FROM attempts "
+            "WHERE split='learn' AND kind=? ORDER BY id DESC LIMIT 100", (kind,),
         ).fetchall()
-        return [{"question": row[0], "expected": row[1]} for row in rows]
+        results = []
+        for seed, question, expected, response in rows:
+            task = task_for_seed(int(seed))
+            parsed, _ = extract_integer_answer(response)
+            if task.question == question and task.expected == expected and parsed == task.expected:
+                results.append({'question': task.question, 'expected': task.expected})
+                if len(results) >= n:
+                    break
+        return results
 
     def stats(self) -> dict:
-        total, correct = self.db.execute(
-            "SELECT COUNT(*),COALESCE(SUM(correct),0) FROM attempts WHERE split='learn'"
-        ).fetchone()
-        return {"total": total, "correct": correct, "accuracy": round(correct / total, 4) if total else None}
+        """Re-score existing responses without modifying their historical records.
+
+        A legacy failure caused by a formatting-only rejection is counted as a
+        recovered success, separately from a genuine incorrect answer.
+        """
+        rows = self.db.execute(
+            "SELECT seed,kind,question,expected,model_response,correct FROM attempts "
+            "WHERE split='learn' ORDER BY id"
+        ).fetchall()
+        total = len(rows)
+        passed = legacy_passed = rescued = unparseable = bad_label = 0
+        by_kind = {}
+        rolling = []
+        for seed, kind, question, expected, response, old_correct in rows:
+            legacy_passed += int(bool(old_correct))
+            task = task_for_seed(int(seed))
+            valid_label = kind == task.kind and question == task.question and expected == task.expected
+            answer, parser = extract_integer_answer(response)
+            correct = bool(valid_label and answer == task.expected)
+            passed += int(correct)
+            rescued += int(correct and not old_correct)
+            unparseable += int(answer is None)
+            bad_label += int(not valid_label)
+            bucket = by_kind.setdefault(kind, {'total': 0, 'passed': 0})
+            bucket['total'] += 1
+            bucket['passed'] += int(correct)
+            rolling.append(int(correct))
+        window = rolling[-100:]
+        return {'total': total, 'correct': passed,
+                'accuracy': round(passed / total, 4) if total else None,
+                'legacy_correct': legacy_passed, 'rescued_from_format': rescued,
+                'unparseable': unparseable, 'invalid_stored_labels': bad_label,
+                'recent_count': len(window), 'recent_correct': sum(window),
+                'recent_accuracy': round(sum(window)/len(window), 4) if window else None,
+                'kinds': by_kind}
+
+    def recent_attempts(self, n: int = 12) -> list[dict]:
+        rows = self.db.execute(
+            "SELECT seed,kind,question,expected,model_response,correct,model FROM attempts "
+            "WHERE split='learn' ORDER BY id DESC LIMIT ?", (n,),
+        ).fetchall()
+        result = []
+        for seed, kind, question, expected, response, old_correct, model in rows:
+            task = task_for_seed(int(seed))
+            answer, method = extract_integer_answer(response)
+            recalculated = bool(task.kind == kind and task.question == question
+                                and task.expected == expected and answer == expected)
+            result.append({'seed': seed, 'kind': kind, 'expected': expected,
+                           'response': (response or '')[:300], 'parsed': answer,
+                           'parse_method': method, 'correct': recalculated,
+                           'legacy_correct': bool(old_correct), 'model': model})
+        return result
 
     def training_examples(self) -> list[dict]:
         rows = self.db.execute(
@@ -149,10 +209,19 @@ class CloudStore:
             tmp.replace(self.state_path)
 
     def stats(self) -> dict:
-        rows = [x for x in read_jsonl(self.attempts_path) if x.get("split") == "learn"]
-        correct = sum(bool(x.get("correct")) for x in rows)
-        return {"total": len(rows), "correct": correct,
-                "accuracy": round(correct / len(rows), 4) if rows else None}
+        rows = [x for x in read_jsonl(self.attempts_path) if x.get('split') == 'learn']
+        recalculated = original = rescued = 0
+        for row in rows:
+            original += int(bool(row.get('correct')))
+            t = task_for_seed(int(row['seed']))
+            answer, _ = extract_integer_answer(row.get('model_response', ''))
+            correct = bool(t.question == row.get('question') and t.kind == row.get('kind')
+                           and t.expected == row.get('expected') and answer == t.expected)
+            recalculated += int(correct)
+            rescued += int(correct and not row.get('correct'))
+        return {'total': len(rows), 'correct': recalculated,
+                'legacy_correct': original, 'rescued_from_format': rescued,
+                'accuracy': round(recalculated / len(rows), 4) if rows else None}
 
     def write_summary(self) -> None:
         s = self.stats()
@@ -167,7 +236,9 @@ class CloudStore:
             "# Online learning experiment\n\n"
             f"Updated (UTC): {stamp()}\n\n"
             f"- Learning tasks attempted: {s['total']}\n"
-            f"- Independently correct initial answers: {s['correct']}\n"
+            f"- Re-scored mathematically correct model responses: {s['correct']}\n"
+            f"- Original strict-format successes: {s['legacy_correct']}\n"
+            f"- Recovered formatting-only failures: {s['rescued_from_format']}\n"
             f"- Historical task accuracy: {s['accuracy']}\n"
             "- Persistent changes: independently verified examples and attempt logs\n"
             f"- Multi-agent cycles: {agent.get('cycles', 0)}\n"

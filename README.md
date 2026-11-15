@@ -1,4 +1,4 @@
-# Continual AI Lab v0.4.1 — Multi-agent verified learning + gated QLoRA
+# Continual AI Lab v0.5 — Multi-agent verified learning + gated QLoRA
 
 **Status:** runnable native-Windows local multi-agent loop; scheduled CPU-only GitHub experiment; optional real CUDA QLoRA with independent two-split tests and automatic *local pointer* promotion. This does **not** establish general intelligence improvement and is not a 24/7 hosted inference API.
 
@@ -93,3 +93,13 @@ The AI cannot modify its evaluator, change GPU governor settings, execute genera
 ## Learning limitations / next research steps
 
 The 6-family arithmetic curriculum is small and can easily overfit. A promotion gate with 60 tasks per split cannot conclusively distinguish small statistical gains. For an advanced system, add independently sourced programming tests with isolated execution, research QA with cited evidence, distributed evaluation, calibration measurements, model quality drift checks, and broad held-out reasoning suites. Avoid automatic ingestion of unverified self-generated answers. This repository is a **practical, measurable learning infrastructure**, not the world's best AI.
+
+## v0.5 — Corrected arithmetic scoring and transparent diagnostics
+
+The previous scorer falsely rejected many correct answers, such as a bare `-42` or a final arithmetic equation ending with the correct result. These are now accepted, alongside `ANSWER: -42` and a strict JSON object `{"answer": -42}`. Ambiguous labels, decimals where integers are required, and placeholder strings remain invalid. Every answer is independently compared with the deterministic mathematical result; the AI never approves itself.
+
+**The dashboard now re-scores legacy model responses without rewriting the SQLite log.** It shows old logged successes, corrected successes, rescued formatting errors, the last 100 task accuracy, task-family breakdowns and the last 12 raw model responses. It also distinguishes the live Ollama model from the separately promoted LoRA adapter. A low old aggregate may reflect response-format failures, not just incorrect calculations. If the corrected rate remains low, inspect the raw responses before changing model weights.
+
+On Windows stop the running agent/dashboard/chat windows with Ctrl+C, use the existing `UPDATE_LOCAL_WINDOWS.ps1` updater from the current GitHub release, then restart `START_ALL_WINDOWS.cmd`. Your `data/local` SQLite database, saved chats, checkpoints and virtual environments remain untouched. The updater makes a source backup before copying code. **Do not delete or reset the existing learning database.**
+
+These parser changes also affect future candidate-versus-incumbent evaluations, so historical promotion results should not be compared directly with the new scoring without re-benchmarking. The active adapter is still the separate Qwen3-1.7B trained model, not the Qwen3-4B Ollama agent whose responses appear in the standard dashboard.

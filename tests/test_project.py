@@ -26,8 +26,13 @@ class TaskTests(unittest.TestCase):
     def test_answer_parser_rejects_ambiguity(self):
         self.assertEqual(parse_integer_answer("ANSWER: -22"), -22)
         self.assertIsNone(parse_integer_answer("ANSWER: 1\nANSWER: 2"))
-        self.assertIsNone(parse_integer_answer("The answer is 5"))
+        self.assertEqual(parse_integer_answer("The answer is 5"), 5)
         self.assertIsNone(parse_integer_answer("ANSWER: 4.3"))
+        self.assertEqual(parse_integer_answer("-42"), -42)
+        self.assertEqual(parse_integer_answer("{\"answer\": 343}"), 343)
+        self.assertEqual(parse_integer_answer("12² - 4² = 144 - 16 = 128"), 128)
+        self.assertIsNone(parse_integer_answer("ANSWER: 1\nANSWER: 2"))
+        self.assertIsNone(parse_integer_answer("ANSWER: <integer>"))
     def test_verify(self):
         task = task_for_seed(5)
         self.assertTrue(verify(task, f"ANSWER: {task.expected}"))
