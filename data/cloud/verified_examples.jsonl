@@ -22,3 +22,7 @@
 {"expected": 44, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 374 is divided by 55.", "seed": 21, "verified": true}
 {"expected": 15, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-1)*x + (54) = 39.", "seed": 22, "verified": true}
 {"expected": 60, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 8 squared minus 2 squared.", "seed": 23, "verified": true}
+{"expected": 1109, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (1151) + (-42).", "seed": 24, "verified": true}
+{"expected": -1369, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (37) times (-37).", "seed": 25, "verified": true}
+{"expected": -23, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-345) divided by (15).", "seed": 26, "verified": true}
+{"expected": 54, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 2859 is divided by 55.", "seed": 27, "verified": true}
