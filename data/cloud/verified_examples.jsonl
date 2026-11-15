@@ -18,3 +18,7 @@
 {"expected": -56, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 5 squared minus 9 squared.", "seed": 17, "verified": true}
 {"expected": 1026, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (818) + (208).", "seed": 18, "verified": true}
 {"expected": 2982, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (71) times (42).", "seed": 19, "verified": true}
+{"expected": 30, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (1290) divided by (43).", "seed": 20, "verified": true}
+{"expected": 44, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 374 is divided by 55.", "seed": 21, "verified": true}
+{"expected": 15, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-1)*x + (54) = 39.", "seed": 22, "verified": true}
+{"expected": 60, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 8 squared minus 2 squared.", "seed": 23, "verified": true}
