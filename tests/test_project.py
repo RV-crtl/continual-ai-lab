@@ -40,6 +40,7 @@ class TaskTests(unittest.TestCase):
     def test_prompt_uses_concrete_numbers_not_placeholder(self):
         prompt = instruction(task_for_seed(0))
         self.assertNotIn("<integer>", prompt)
+        self.assertNotIn("<number>", prompt)
         self.assertIn("ANSWER: 7", prompt)
         self.assertIn(task_for_seed(0).question, prompt)
     def test_no_holdout_seed_in_training(self):

@@ -43,8 +43,9 @@ def strategy_prompt(task, examples, strategy):
     if strategy == 'few_shot':
         return instruction(task, examples)
     if strategy == 'zero_shot':
-        return ('Answer the arithmetic problem. Reply on one line exactly as '
-                'ANSWER: <computed integer>. No extra text.\nQuestion: '+task.question)
+        return ('Calculate the answer to this arithmetic problem accurately. '
+                'Respond with only the actual integer, without any words, example, '
+                'placeholder or calculation steps.\nQuestion: '+task.question)
     if strategy == 'explicit_format':
         return ('You are checking elementary arithmetic. Compute exactly. '
                 'Give one line only, e.g. ANSWER: 7 (the 7 is only an example). '

@@ -104,7 +104,7 @@ def verify(task: Task, response: str) -> bool:
 def instruction(task: Task, examples: list[dict] | None = None) -> str:
     prefix = (
         'Solve the current arithmetic question carefully. Double-check the calculation. '
-        'Return only the final integer, preferably using the exact format ANSWER: <number>. '
+        'Return only the final integer, preferably with the prefix ANSWER: followed by its actual value. '
         'Use the actual computed number, never a placeholder or a copied example.\n'
         'Format examples (NOT the question to solve):\n'
         'Question: Calculate (3) + (4).\nANSWER: 7\n'

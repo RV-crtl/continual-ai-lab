@@ -33,7 +33,7 @@ def get_dataset(path: Path, max_examples: int) -> list[dict]:
 
 def prefix_for(tok, question: str) -> str:
     msgs = [
-        {'role': 'system', 'content': 'You are a careful mathematical solver. Reply with exactly ANSWER: <integer>.'},
+        {'role': 'system', 'content': 'You are a careful mathematical solver. Reply in one line with ANSWER: followed by the correct integer. Never output a placeholder.'},
         {'role': 'user', 'content': question},
     ]
     try:

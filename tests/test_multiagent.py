@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from continual_ai.multi_agent import CallBudget, MultiAgentController, choose_strategy, VERIFIER_SEED_START
+from continual_ai.multi_agent import CallBudget, MultiAgentController, choose_strategy, VERIFIER_SEED_START, strategy_prompt
 from continual_ai.storage import CloudStore, LocalStore
 from continual_ai.tasks import task_for_seed
 from continual_ai.train_lora import get_dataset
@@ -23,6 +23,12 @@ class FakeAI:
 
 
 class MultiAgentTests(unittest.TestCase):
+    def test_prompt_strategies_avoid_placeholders(self):
+        for strategy in ('few_shot', 'zero_shot', 'explicit_format'):
+            prompt = strategy_prompt(task_for_seed(0), [], strategy)
+            self.assertNotIn('<computed integer>', prompt)
+            self.assertNotIn('<number>', prompt)
+
     def test_budget_protects_verification(self):
         b = CallBudget()
         self.assertEqual(b.verification_share, .5)
