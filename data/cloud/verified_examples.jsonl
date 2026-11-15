@@ -34,3 +34,7 @@
 {"expected": 47, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 3167 is divided by 52.", "seed": 33, "verified": true}
 {"expected": 54, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-11)*x + (-82) = -676.", "seed": 34, "verified": true}
 {"expected": 0, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 4 squared.", "seed": 35, "verified": true}
+{"expected": -2079, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-602) + (-1477).", "seed": 36, "verified": true}
+{"expected": 105, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-35) times (-3).", "seed": 37, "verified": true}
+{"expected": -37, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-1628) divided by (44).", "seed": 38, "verified": true}
+{"expected": 33, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1242 is divided by 39.", "seed": 39, "verified": true}
