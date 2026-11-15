@@ -1,0 +1,8 @@
+{"expected": 934, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-420) + (1354).", "seed": 0, "verified": true}
+{"expected": 1323, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-27) times (-49).", "seed": 1, "verified": true}
+{"expected": 12, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (324) divided by (27).", "seed": 2, "verified": true}
+{"expected": 6, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1501 is divided by 23.", "seed": 3, "verified": true}
+{"expected": 11, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (8)*x + (-35) = 53.", "seed": 4, "verified": true}
+{"expected": 69, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 13 squared minus 10 squared.", "seed": 5, "verified": true}
+{"expected": -357, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-434) + (77).", "seed": 6, "verified": true}
+{"expected": 1872, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (36) times (52).", "seed": 7, "verified": true}
