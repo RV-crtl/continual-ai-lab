@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+.pytest_cache/
+data/local/*
+!data/local/.gitkeep
+*.safetensors
+*.bin
+*.gguf
+*.pth
+*.pt
+*.ckpt
+models/
+logs/

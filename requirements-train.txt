@@ -1,0 +1,6 @@
+# OPTIONAL only. Use a dedicated environment for local adapter training.
+# Versions are intentionally bounded to avoid unexpectedly changing APIs.
+torch>=2.4,<3.0
+transformers>=4.51,<5.0
+peft>=0.15,<1.0
+accelerate>=1.0,<2.0
