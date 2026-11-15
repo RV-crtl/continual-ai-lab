@@ -30,3 +30,7 @@
 {"expected": 119, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 12 squared minus 5 squared.", "seed": 29, "verified": true}
 {"expected": -110, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (193) + (-303).", "seed": 30, "verified": true}
 {"expected": -2064, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (48) times (-43).", "seed": 31, "verified": true}
+{"expected": -6, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-114) divided by (19).", "seed": 32, "verified": true}
+{"expected": 47, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 3167 is divided by 52.", "seed": 33, "verified": true}
+{"expected": 54, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-11)*x + (-82) = -676.", "seed": 34, "verified": true}
+{"expected": 0, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 4 squared.", "seed": 35, "verified": true}
