@@ -6,3 +6,11 @@
 {"expected": 69, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 13 squared minus 10 squared.", "seed": 5, "verified": true}
 {"expected": -357, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-434) + (77).", "seed": 6, "verified": true}
 {"expected": 1872, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (36) times (52).", "seed": 7, "verified": true}
+{"expected": -49, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-1764) divided by (36).", "seed": 8, "verified": true}
+{"expected": 15, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 435 is divided by 21.", "seed": 9, "verified": true}
+{"expected": 21, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-7)*x + (29) = -118.", "seed": 10, "verified": true}
+{"expected": 117, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 11 squared minus 2 squared.", "seed": 11, "verified": true}
+{"expected": -652, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-371) + (-281).", "seed": 12, "verified": true}
+{"expected": 4148, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-61) times (-68).", "seed": 13, "verified": true}
+{"expected": 39, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (1677) divided by (43).", "seed": 14, "verified": true}
+{"expected": 0, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 864 is divided by 6.", "seed": 15, "verified": true}
