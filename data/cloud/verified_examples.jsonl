@@ -38,3 +38,7 @@
 {"expected": 105, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-35) times (-3).", "seed": 37, "verified": true}
 {"expected": -37, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-1628) divided by (44).", "seed": 38, "verified": true}
 {"expected": 33, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1242 is divided by 39.", "seed": 39, "verified": true}
+{"expected": -29, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-8)*x + (-82) = 150.", "seed": 40, "verified": true}
+{"expected": -20, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 6 squared.", "seed": 41, "verified": true}
+{"expected": -232, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-552) + (320).", "seed": 42, "verified": true}
+{"expected": -234, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (39) times (-6).", "seed": 43, "verified": true}
