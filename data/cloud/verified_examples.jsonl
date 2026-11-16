@@ -42,3 +42,7 @@
 {"expected": -20, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 6 squared.", "seed": 41, "verified": true}
 {"expected": -232, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-552) + (320).", "seed": 42, "verified": true}
 {"expected": -234, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (39) times (-6).", "seed": 43, "verified": true}
+{"expected": 6, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (60) divided by (10).", "seed": 44, "verified": true}
+{"expected": 4, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1432 is divided by 14.", "seed": 45, "verified": true}
+{"expected": 24, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (9)*x + (4) = 220.", "seed": 46, "verified": true}
+{"expected": 40, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 11 squared minus 9 squared.", "seed": 47, "verified": true}
