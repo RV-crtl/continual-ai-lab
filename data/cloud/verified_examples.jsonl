@@ -46,3 +46,7 @@
 {"expected": 4, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1432 is divided by 14.", "seed": 45, "verified": true}
 {"expected": 24, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (9)*x + (4) = 220.", "seed": 46, "verified": true}
 {"expected": 40, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 11 squared minus 9 squared.", "seed": 47, "verified": true}
+{"expected": -1953, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-1312) + (-641).", "seed": 48, "verified": true}
+{"expected": -1026, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-54) times (19).", "seed": 49, "verified": true}
+{"expected": -1, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-5) divided by (5).", "seed": 50, "verified": true}
+{"expected": 19, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1629 is divided by 23.", "seed": 51, "verified": true}
