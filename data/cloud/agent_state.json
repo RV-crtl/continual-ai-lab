@@ -1,22 +1,22 @@
 {
-  "cycles": 18,
+  "cycles": 20,
   "calls": {
-    "learner": 18,
-    "optimiser": 18,
-    "verifier": 100
+    "learner": 20,
+    "optimiser": 20,
+    "verifier": 113
   },
   "seconds": {
-    "learner": 67.11682777200001,
-    "optimiser": 28.721267670000017,
-    "verifier": 99.51855776800018
+    "learner": 76.18790205400002,
+    "optimiser": 31.85635148500002,
+    "verifier": 113.14865784500019
   },
   "strategies": {
     "few_shot": {
-      "n": 4,
-      "correct": 0
+      "n": 5,
+      "correct": 1
     },
     "zero_shot": {
-      "n": 8,
+      "n": 9,
       "correct": 3
     },
     "explicit_format": {
@@ -24,7 +24,7 @@
       "correct": 1
     }
   },
-  "verified_correct": 42,
+  "verified_correct": 46,
   "recent_parseable": [
     true,
     true,

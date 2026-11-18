@@ -50,3 +50,7 @@
 {"expected": -1026, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-54) times (19).", "seed": 49, "verified": true}
 {"expected": -1, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-5) divided by (5).", "seed": 50, "verified": true}
 {"expected": 19, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1629 is divided by 23.", "seed": 51, "verified": true}
+{"expected": 16, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-2)*x + (90) = 58.", "seed": 52, "verified": true}
+{"expected": -33, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 7 squared.", "seed": 53, "verified": true}
+{"expected": 1379, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (1212) + (167).", "seed": 54, "verified": true}
+{"expected": 4161, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (73) times (57).", "seed": 55, "verified": true}
