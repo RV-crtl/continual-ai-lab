@@ -54,3 +54,7 @@
 {"expected": -33, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 7 squared.", "seed": 53, "verified": true}
 {"expected": 1379, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (1212) + (167).", "seed": 54, "verified": true}
 {"expected": 4161, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (73) times (57).", "seed": 55, "verified": true}
+{"expected": -14, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-196) divided by (14).", "seed": 56, "verified": true}
+{"expected": 14, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1862 is divided by 21.", "seed": 57, "verified": true}
+{"expected": -8, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (11)*x + (-61) = -149.", "seed": 58, "verified": true}
+{"expected": -135, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 3 squared minus 12 squared.", "seed": 59, "verified": true}
