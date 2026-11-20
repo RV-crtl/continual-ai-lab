@@ -58,3 +58,7 @@
 {"expected": 14, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1862 is divided by 21.", "seed": 57, "verified": true}
 {"expected": -8, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (11)*x + (-61) = -149.", "seed": 58, "verified": true}
 {"expected": -135, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 3 squared minus 12 squared.", "seed": 59, "verified": true}
+{"expected": -1223, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-1286) + (63).", "seed": 60, "verified": true}
+{"expected": 1458, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (54) times (27).", "seed": 61, "verified": true}
+{"expected": -20, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-760) divided by (38).", "seed": 62, "verified": true}
+{"expected": 26, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 628 is divided by 43.", "seed": 63, "verified": true}
