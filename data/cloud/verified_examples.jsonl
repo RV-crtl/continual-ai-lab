@@ -62,3 +62,7 @@
 {"expected": 1458, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (54) times (27).", "seed": 61, "verified": true}
 {"expected": -20, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-760) divided by (38).", "seed": 62, "verified": true}
 {"expected": 26, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 628 is divided by 43.", "seed": 63, "verified": true}
+{"expected": 53, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (12)*x + (-14) = 622.", "seed": 64, "verified": true}
+{"expected": 105, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 11 squared minus 4 squared.", "seed": 65, "verified": true}
+{"expected": 1113, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (1425) + (-312).", "seed": 66, "verified": true}
+{"expected": -4278, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-69) times (62).", "seed": 67, "verified": true}
