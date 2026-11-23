@@ -70,3 +70,7 @@
 {"expected": 7, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 1951 is divided by 8.", "seed": 69, "verified": true}
 {"expected": -32, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (1)*x + (-15) = -47.", "seed": 70, "verified": true}
 {"expected": -72, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 3 squared minus 9 squared.", "seed": 71, "verified": true}
+{"expected": 789, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-631) + (1420).", "seed": 72, "verified": true}
+{"expected": 1628, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-22) times (-74).", "seed": 73, "verified": true}
+{"expected": -39, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (-585) divided by (15).", "seed": 74, "verified": true}
+{"expected": 5, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 2777 is divided by 12.", "seed": 75, "verified": true}
