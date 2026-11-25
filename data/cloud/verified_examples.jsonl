@@ -78,3 +78,7 @@
 {"expected": -65, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 4 squared minus 9 squared.", "seed": 77, "verified": true}
 {"expected": 167, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (7) + (160).", "seed": 78, "verified": true}
 {"expected": 175, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (35) times (5).", "seed": 79, "verified": true}
+{"expected": 22, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (220) divided by (10).", "seed": 80, "verified": true}
+{"expected": 9, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 3896 is divided by 13.", "seed": 81, "verified": true}
+{"expected": 14, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-1)*x + (-84) = -98.", "seed": 82, "verified": true}
+{"expected": -88, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 9 squared minus 13 squared.", "seed": 83, "verified": true}
