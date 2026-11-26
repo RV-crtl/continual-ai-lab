@@ -82,3 +82,7 @@
 {"expected": 9, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 3896 is divided by 13.", "seed": 81, "verified": true}
 {"expected": 14, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-1)*x + (-84) = -98.", "seed": 82, "verified": true}
 {"expected": -88, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 9 squared minus 13 squared.", "seed": 83, "verified": true}
+{"expected": -6, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-1107) + (1101).", "seed": 84, "verified": true}
+{"expected": -5328, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (74) times (-72).", "seed": 85, "verified": true}
+{"expected": 9, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (351) divided by (39).", "seed": 86, "verified": true}
+{"expected": 3, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 703 is divided by 7.", "seed": 87, "verified": true}
