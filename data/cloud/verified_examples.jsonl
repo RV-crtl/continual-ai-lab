@@ -86,3 +86,7 @@
 {"expected": -5328, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (74) times (-72).", "seed": 85, "verified": true}
 {"expected": 9, "kind": "division", "label_source": "deterministic_generator", "question": "Calculate (351) divided by (39).", "seed": 86, "verified": true}
 {"expected": 3, "kind": "remainder", "label_source": "deterministic_generator", "question": "Find the nonnegative remainder when 703 is divided by 7.", "seed": 87, "verified": true}
+{"expected": -29, "kind": "linear", "label_source": "deterministic_generator", "question": "Solve for integer x: (-2)*x + (28) = 86.", "seed": 88, "verified": true}
+{"expected": -48, "kind": "powers", "label_source": "deterministic_generator", "question": "Calculate 11 squared minus 13 squared.", "seed": 89, "verified": true}
+{"expected": -483, "kind": "addition", "label_source": "deterministic_generator", "question": "Calculate (-232) + (-251).", "seed": 90, "verified": true}
+{"expected": -2418, "kind": "multiplication", "label_source": "deterministic_generator", "question": "Calculate (-62) times (39).", "seed": 91, "verified": true}
